@@ -8,6 +8,7 @@ then triggers the parse pipeline.
 import os
 import subprocess
 import logging
+import httpx
 from app.config.celery_config import celery_app
 
 logger = logging.getLogger(__name__)
@@ -15,13 +16,15 @@ logger = logging.getLogger(__name__)
 REPOS_BASE_DIR = os.getenv("REPOS_BASE_DIR", "./data/repos")
 
 
+from typing import Optional
+
 @celery_app.task(
     name="tasks.ingest_repo",
     bind=True,
     max_retries=3,
     default_retry_delay=15,
 )
-def ingest_repo(self, repo_url: str, repo_id: str):
+def ingest_repo(self, repo_url: str, repo_id: str, user_id: Optional[str] = None):
     """
     Clone (or pull) a GitHub repository.
 
@@ -34,6 +37,12 @@ def ingest_repo(self, repo_url: str, repo_id: str):
     """
     local_path = os.path.join(REPOS_BASE_DIR, repo_id)
     os.makedirs(REPOS_BASE_DIR, exist_ok=True)
+
+    # 1. Update status to cloning
+    try:
+        httpx.patch(f"{os.getenv('FASTAPI_URL', 'http://localhost:8000')}/api/ingest/status/{repo_id}", json={"status": "cloning"})
+    except Exception:
+        pass
 
     try:
         if os.path.isdir(os.path.join(local_path, ".git")):
@@ -51,7 +60,17 @@ def ingest_repo(self, repo_url: str, repo_id: str):
                 capture_output=True,
             )
 
+        # 2. Update status to cloned
+        try:
+            httpx.patch(f"{os.getenv('FASTAPI_URL', 'http://localhost:8000')}/api/ingest/status/{repo_id}", json={"status": "parsing"})
+        except Exception:
+            pass
+
         logger.info("Ingest complete: %s", local_path)
+        
+        # 3. Trigger Parse Pipeline
+        celery_app.send_task("tasks.parse_repo", args=[repo_id])
+        
         return {"status": "success", "repo_id": repo_id, "path": local_path}
 
     except subprocess.CalledProcessError as exc:

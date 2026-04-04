@@ -7,11 +7,8 @@ from sqlalchemy import text
 from pydantic import BaseModel
 from typing import List, Optional
 import httpx
-import logging
-import traceback
+import os
 from app.core.config import get_settings
-
-logger = logging.getLogger(__name__)
 
 router = APIRouter()
 settings = get_settings()
@@ -25,8 +22,7 @@ class ChatRequest(BaseModel):
 async def query_repo(
     payload: ChatRequest,
     db: AsyncSession = Depends(get_db),
-    faiss = Depends(get_faiss),
-    user = Depends(verify_token)
+    faiss = Depends(get_faiss)
 ):
     """
     RAG-based chat query using Groq (Grok) API.
@@ -36,25 +32,33 @@ async def query_repo(
     
     try:
         # 1. Similarity Search in FAISS
+        # We need the query embedding
         query_emb = await faiss.get_embeddings([query])
+        
+        # Search Top K
         distances, indices = faiss.index.search(query_emb, k=5)
         
+        # indices are strings in our FAISS manager (wait, IndexFlatL2 uses ints)
+        # We stored them as ints [0...ntotal]
         found_indices = indices[0].tolist()
+        
         if not found_indices or found_indices[0] == -1:
             return {"answer": "I couldn't find any relevant code in this repository.", "sources": []}
 
-        # 2. Fetch chunk content from DB
+        # 2. Fetch chunk content from DB using embeddingIds
+        # Our embeddingIds are just the string of the FAISS index
         found_indices_str = [str(i) for i in found_indices if i != -1]
         
         result = await db.execute(
-            text('SELECT content, "filePath" FROM code_chunks WHERE "repoId" = CAST(:repo_id AS uuid) AND "embeddingId" = ANY(:emb_ids)'),
+            text('SELECT content, "filePath" FROM code_chunks WHERE "repoId" = :repo_id AND "embeddingId" = ANY(:emb_ids)'),
             {"repo_id": repo_id, "emb_ids": found_indices_str}
         )
         chunks = result.fetchall()
         
         context = "\n\n".join([f"--- File: {row[1]} ---\n{row[0]}" for row in chunks])
         
-        # 3. Call Groq API
+        # 3. Call Groq (labeled as GROK in env)
+        # Using OpenAI-compatible endpoint for Groq
         async with httpx.AsyncClient() as client:
             resp = await client.post(
                 "https://api.groq.com/openai/v1/chat/completions",
@@ -65,8 +69,8 @@ async def query_repo(
                 json={
                     "model": settings.GROK_MODEL,
                     "messages": [
-                        {"role": "system", "content": "You are Groove AI, an expert code assistant. Use the provided context from the repository to answer the user's question accurately. Focus on code structure, logic, and explanations. Keep answers concise but insightful."},
-                        {"role": "user", "content": f"Context snippets:\n{context}\n\nQuestion: {query}"}
+                        {"role": "system", "content": "You are Groove AI, an expert code assistant. Use the provided context from the repository to answer the user's question accurately. Focus on code structure, logic, and explanations."},
+                        {"role": "user", "content": f"Context:\n{context}\n\nQuestion: {query}"}
                     ],
                     "temperature": 0.2
                 },
@@ -82,10 +86,6 @@ async def query_repo(
         }
         
     except Exception as e:
-        logger.error(f"Error in query_repo: {str(e)}\n{traceback.format_exc()}")
+        import traceback
+        traceback.print_exc()
         raise HTTPException(status_code=500, detail=str(e))
-
-@router.post("/explain")
-async def explain_code(payload: dict, user=Depends(verify_token)):
-    # Legacy stub
-    return {"message": "Use /query for full RAG chat"}

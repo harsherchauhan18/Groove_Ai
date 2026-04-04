@@ -1,0 +1,37 @@
+﻿[0] Cleaning up stuck repos...
+    Cleaned up stuck repos.
+[1] Generated JWT for user c00b03b2...
+[2] Health: {'status': 'ok'}
+[3] Repos before: 200
+
+[4] POST /api/ingest/clone ...
+    Response: 200
+    {'status': 'accepted', 'task_id': 'ingest-5fee43d9-5ed5-4605-b71f-935cad88e5b8', 'repo_id': '5fee43d9-5ed5-4605-b71f-935cad88e5b8', 'message': 'Cloning of https://github.com/Shreya2776/SkillRise_India has been queued.'}
+
+[5] Polling repo 5fee43d9... (up to 120s)
+    [  5s] cloning
+    [ 10s] cloning
+    [ 15s] cloning
+    [ 20s] cloning
+    [ 25s] cloning
+    [ 30s] cloning
+    [ 35s] cloning
+    [ 40s] cloning
+    [ 45s] cloning
+    [ 50s] cloning
+    [ 55s] cloning
+    [ 60s] cloning
+    [ 65s] cloning
+    [ 70s] cloning
+    [ 75s] cloning
+    [ 80s] cloning
+    [ 85s] cloning
+    [ 90s] cloning
+    [ 95s] cloning
+    [100s] cloning
+    [105s] cloning
+    [110s] cloning
+    [115s] cloning
+    [120s] cloning
+
+[Done]

@@ -9,6 +9,7 @@ import { connectDB } from './config/db.js';
 import './config/passport.js'; // register strategies
 
 import authRoutes from './routes/auth.routes.js';
+import './models/index.js'; // Ensure models are registered
 
 const app = express();
 

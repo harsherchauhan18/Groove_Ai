@@ -1,0 +1,50 @@
+﻿python : INFO:httpx:HTTP 
+Request: PATCH http://loca
+lhost:8000/api/ingest/stat
+us/direct-test-f9ba7f8a 
+"HTTP/1.1 500 Internal 
+Server Error"
+At line:1 char:26
++ 
+.\venv\Scripts\activate; 
+python test_direct.py 
+2>&1 | Out-File -Encod ...
++                         
+ 
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo        
+      : NotSpecified: (I  
+  NFO:httpx:HTTP...l Se   
+ rver Error":String) [    
+], RemoteException
+    + FullyQualifiedError 
+   Id : NativeCommandErr  
+  or
+ 
+INFO:app.tasks.ingest_task
+:Cloning https://github.co
+m/Shreya2776/SkillRise_Ind
+ia \u2192 ./data/repos\dir
+ect-test-f9ba7f8a
+INFO:httpx:HTTP Request: 
+PATCH http://localhost:800
+0/api/ingest/status/direct
+-test-f9ba7f8a "HTTP/1.1 
+500 Internal Server Error"
+INFO:app.tasks.ingest_task
+:Ingest complete: ./data/r
+epos\direct-test-f9ba7f8a
+INFO:celery.app.trace:Task
+ tasks.ingest_repo[9fdf3f8
+9-80aa-4801-a3fa-62b4ae29f
+241] succeeded in 
+9.765190899837762s: 
+{'status': 'success', 
+'repo_id': 
+'direct-test-f9ba7f8a', 
+'path': './data/repos\dire
+ct-test-f9ba7f8a'}
+Creating repo record for direct-test-f9ba7f8a...
+Starting direct ingest for https://github.com/Shreya2776/SkillRise_India as direct-test-f9ba7f8a...
+Task finished with state: SUCCESS
+Result: {'status': 'success', 'repo_id': 'direct-test-f9ba7f8a', 'path': './data/repos\\direct-test-f9ba7f8a'}

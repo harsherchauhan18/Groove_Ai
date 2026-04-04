@@ -16,18 +16,22 @@ def verify_token(
     """
     token = credentials.credentials
     try:
+        print(f"[SECURITY] Validating token: {token[:10]}...{token[-10:]}")
+        print(f"[SECURITY] Using secret: {settings.JWT_SECRET}")
         payload = jwt.decode(
             token,
             settings.JWT_SECRET,
             algorithms=["HS256"],
         )
         return payload
-    except jwt.ExpiredSignatureError:
+    except jwt.ExpiredSignatureError as e:
+        print(f"[SECURITY] Token expired: {e}")
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Access token expired.",
         )
-    except jwt.InvalidTokenError:
+    except jwt.InvalidTokenError as e:
+        print(f"[SECURITY] Invalid token error: {e}")
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid access token.",

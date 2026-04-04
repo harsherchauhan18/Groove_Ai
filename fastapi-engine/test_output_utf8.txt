@@ -1,0 +1,57 @@
+﻿python : C:\Users\harsh\ME
+RN\Groove_AI\fastapi-engin
+e\test_pipeline.py:19: 
+DeprecationWarning: dateti
+me.datetime.utcnow() is 
+deprecated and scheduled 
+for removal in a future 
+version. Use 
+timezone-aware objects to 
+represent datetimes in 
+UTC: datetime.datetime.now
+(datetime.UTC).
+At line:1 char:26
++ 
+.\venv\Scripts\activate; 
+python test_pipeline.py 
+2>&1 | Out-File -Enc ...
++                         
+ ~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~
+    + CategoryInfo        
+      : NotSpecified: (C  
+  :\Users\harsh\...(dat   
+ etime.UTC).:String) [    
+], RemoteException
+    + FullyQualifiedError 
+   Id : NativeCommandErr  
+  or
+ 
+  "iat": datetime.datetime
+.utcnow(),
+C:\Users\harsh\MERN\Groove
+_AI\fastapi-engine\test_pi
+peline.py:20: 
+DeprecationWarning: dateti
+me.datetime.utcnow() is 
+deprecated and scheduled 
+for removal in a future 
+version. Use 
+timezone-aware objects to 
+represent datetimes in 
+UTC: datetime.datetime.now
+(datetime.UTC).
+  "exp": datetime.datetime
+.utcnow() + datetime.timed
+elta(hours=1),
+[1] Generated JWT token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ...
+[2] Health check: 200 -> {'status': 'ok'}
+[3] GET /api/ingest/: 200
+    Found 1 existing repositories
+    - SkillRise_India: cloning
+
+[4] Triggering clone for https://github.com/Shreya2776/SkillRise_India...
+    POST /api/ingest/clone: 500
+    Error: {"detail":"Failed to queue ingestion: (sqlalchemy.dialects.postgresql.asyncpg.Error) <class 'asyncpg.exceptions.DataError'>: invalid input for query argument $2: 'test-user-001' (invalid UUID 'test-user-001': length must be between 32..36 characters, got 13)\n[SQL: \n                INSERT INTO repositories (id, \"userId\", name, url, status, \"createdAt\", \"updatedAt\")\n                VALUES ($1, $2, $3, $4, 'pending', NOW(), NOW())\n                ON CONFLICT (id) DO NOTHING\n            ]
+
+[Done]

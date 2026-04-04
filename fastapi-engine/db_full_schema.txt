@@ -1,0 +1,3 @@
+﻿--- tables in public schema ---
+Table: users
+Table: repositories
