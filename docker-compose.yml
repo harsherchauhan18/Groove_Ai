@@ -1,0 +1,121 @@
+version: "3.9"
+
+services:
+  # ── Infrastructure ──────────────────────────────────────────
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: grooveai
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./database/postgres/schema.sql:/docker-entrypoint-initdb.d/01_schema.sql:ro
+      - ./database/postgres/seed.sql:/docker-entrypoint-initdb.d/02_seed.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d grooveai"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    command: redis-server /usr/local/etc/redis/redis.conf
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+      - ./database/redis/config.conf:/usr/local/etc/redis/redis.conf:ro
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  neo4j:
+    image: neo4j:5
+    restart: unless-stopped
+    environment:
+      NEO4J_AUTH: neo4j/${NEO4J_PASSWORD}
+      NEO4JLABS_PLUGINS: '["apoc"]'
+    ports:
+      - "7474:7474"
+      - "7687:7687"
+    volumes:
+      - neo4j_data:/data
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:7474 || exit 1"]
+      interval: 15s
+      timeout: 10s
+      retries: 5
+
+  # ── Application Services ────────────────────────────────────
+  node-api:
+    build:
+      context: ./node-api
+      dockerfile: ../infra/docker/node.Dockerfile
+    restart: unless-stopped
+    ports:
+      - "5000:5000"
+    env_file: ./node-api/.env
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  fastapi-engine:
+    build:
+      context: ./fastapi-engine
+      dockerfile: ../infra/docker/fastapi.Dockerfile
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    env_file: ./fastapi-engine/.env
+    volumes:
+      - faiss_data:/app/data/faiss_index
+      - repos_data:/app/data/repos
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      neo4j:
+        condition: service_healthy
+
+  worker:
+    build:
+      context: ./worker
+      dockerfile: ../infra/docker/worker.Dockerfile
+    restart: unless-stopped
+    env_file: ./worker/.env
+    volumes:
+      - repos_data:/app/data/repos
+    depends_on:
+      redis:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+      fastapi-engine:
+        condition: service_started
+
+  client:
+    build:
+      context: ./client
+      dockerfile: ../infra/docker/client.Dockerfile
+    restart: unless-stopped
+    ports:
+      - "3000:80"
+    depends_on:
+      - node-api
+
+volumes:
+  postgres_data:
+  redis_data:
+  neo4j_data:
+  faiss_data:
+  repos_data:
