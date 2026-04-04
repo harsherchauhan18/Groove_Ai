@@ -1,6 +1,7 @@
 {
   "name": "groove-ai-node-api",
   "version": "1.0.0",
+  "type": "module",
   "description": "Node.js API Gateway for groove-ai",
   "main": "src/server.js",
   "scripts": {

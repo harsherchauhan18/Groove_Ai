@@ -12,6 +12,8 @@ class Settings(BaseSettings):
     # DB
     DATABASE_URL: str = "postgresql+asyncpg://postgres:password@localhost:5432/grooveai"
     REDIS_URL: str = "redis://localhost:6379"
+    CELERY_BROKER_URL: str = "redis://localhost:6379/0"
+    CELERY_RESULT_BACKEND: str = "redis://localhost:6379/1"
 
     # Neo4j
     NEO4J_URI: str = "bolt://localhost:7687"
