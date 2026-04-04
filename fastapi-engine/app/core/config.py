@@ -24,10 +24,15 @@ class Settings(BaseSettings):
     # Gemini (Google)
     GEMINI_API_KEY: str = ""
     GEMINI_MODEL: str = "gemini-1.5-pro"
+    
+    # Hugging Face
+    HF_TOKEN: str = ""
+    EMBEDDING_MODEL: str = "BAAI/bge-small-en-v1.5"
+    EMBEDDING_DIMENSION: int = 384
 
-    # Grok (xAI)
+    # Grok (Groq Inference)
     GROK_API_KEY: str = ""
-    GROK_MODEL: str = "grok-1"
+    GROK_MODEL: str = "llama-3.3-70b-versatile"
 
     # Ollama
     OLLAMA_BASE_URL: str = "http://localhost:11434"

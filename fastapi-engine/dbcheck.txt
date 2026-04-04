@@ -1,0 +1,7 @@
+﻿=== 1 repositories ===
+  repo_id=a650b5d5-d691-42de-95a7-e02b1caefa3d, userId=c00b03b2-5c1a-4a0d-a09f-67b2c70aed73, name=SkillRise_India, status=cloning
+
+=== 3 users ===
+  user_id=2b20f6a2-fcfa-492b-9104-02e760d9f203, email=harshvardhanchauhan719@gmail.com
+  user_id=c00b03b2-5c1a-4a0d-a09f-67b2c70aed73, email=fakeharsh567@gmail.com
+  user_id=93eb8e71-1f47-483f-9cb4-d67c4630c2c3, email=ayushshrivastava2505@gmail.com

@@ -1,0 +1,12 @@
+﻿--- columns for repositories ---
+  - id: uuid
+  - userId: uuid
+  - lastAnalyzedAt: timestamp with time zone
+  - metadata: jsonb
+  - createdAt: timestamp with time zone
+  - updatedAt: timestamp with time zone
+  - status: USER-DEFINED
+  - name: character varying
+  - url: character varying
+  - error: text
+  - branch: character varying

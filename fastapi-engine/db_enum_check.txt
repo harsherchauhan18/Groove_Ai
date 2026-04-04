@@ -1,0 +1,11 @@
+﻿--- status enum values ---
+Type: pg_replication_origin_status
+Type: _pg_replication_origin_status
+Type: enum_repositories_status
+  - pending
+  - cloning
+  - parsing
+  - analyzing
+  - completed
+  - failed
+Type: _enum_repositories_status

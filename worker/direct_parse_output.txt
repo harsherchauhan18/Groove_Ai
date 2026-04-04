@@ -1,0 +1,207 @@
+﻿python : INFO:app.tasks.pa
+rse_task:Parsed 263 files 
+for repo 5fee43d9-5ed5-460
+5-b71f-935cad88e5b8
+At line:1 char:26
++ 
+.\venv\Scripts\activate; 
+python 
+test_parse_direct.py 2>&1 
+| Out-File  ...
++                         
+ ~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~
+    + CategoryInfo        
+      : NotSpecified: (I  
+  NFO:app.tasks....1f-9   
+ 35cad88e5b8:String) [    
+], RemoteException
+    + FullyQualifiedError 
+   Id : NativeCommandErr  
+  or
+ 
+INFO:httpx:HTTP Request: 
+POST http://localhost:8000
+/api/parse/store 
+"HTTP/1.1 500 Internal 
+Server Error"
+ERROR:app.tasks.parse_task
+:HTTP error sending parse 
+results: Server error 
+'500 Internal Server 
+Error' for url 'http://loc
+alhost:8000/api/parse/stor
+e'
+For more information 
+check: https://developer.m
+ozilla.org/en-US/docs/Web/
+HTTP/Status/500
+INFO:celery.app.trace:Task
+ tasks.parse_repo[0434bcd5
+-7cc6-4fc1-9797-c37d839f0c
+2a] retry: Retry in 20s: 
+HTTPStatusError("Server 
+error '500 Internal 
+Server Error' for url 'htt
+p://localhost:8000/api/par
+se/store'\nFor more 
+information check: https:/
+/developer.mozilla.org/en-
+US/docs/Web/HTTP/Status/50
+0")
+INFO:app.tasks.parse_task:
+Parsed 263 files for repo 
+5fee43d9-5ed5-4605-b71f-93
+5cad88e5b8
+INFO:httpx:HTTP Request: 
+POST http://localhost:8000
+/api/parse/store 
+"HTTP/1.1 500 Internal 
+Server Error"
+ERROR:app.tasks.parse_task
+:HTTP error sending parse 
+results: Server error 
+'500 Internal Server 
+Error' for url 'http://loc
+alhost:8000/api/parse/stor
+e'
+For more information 
+check: https://developer.m
+ozilla.org/en-US/docs/Web/
+HTTP/Status/500
+INFO:celery.app.trace:Task
+ tasks.parse_repo[0434bcd5
+-7cc6-4fc1-9797-c37d839f0c
+2a] retry: Retry in 20s: 
+HTTPStatusError("Server 
+error '500 Internal 
+Server Error' for url 'htt
+p://localhost:8000/api/par
+se/store'\nFor more 
+information check: https:/
+/developer.mozilla.org/en-
+US/docs/Web/HTTP/Status/50
+0")
+INFO:app.tasks.parse_task:
+Parsed 263 files for repo 
+5fee43d9-5ed5-4605-b71f-93
+5cad88e5b8
+INFO:httpx:HTTP Request: 
+POST http://localhost:8000
+/api/parse/store 
+"HTTP/1.1 500 Internal 
+Server Error"
+ERROR:app.tasks.parse_task
+:HTTP error sending parse 
+results: Server error 
+'500 Internal Server 
+Error' for url 'http://loc
+alhost:8000/api/parse/stor
+e'
+For more information 
+check: https://developer.m
+ozilla.org/en-US/docs/Web/
+HTTP/Status/500
+INFO:celery.app.trace:Task
+ tasks.parse_repo[0434bcd5
+-7cc6-4fc1-9797-c37d839f0c
+2a] retry: Retry in 20s: 
+HTTPStatusError("Server 
+error '500 Internal 
+Server Error' for url 'htt
+p://localhost:8000/api/par
+se/store'\nFor more 
+information check: https:/
+/developer.mozilla.org/en-
+US/docs/Web/HTTP/Status/50
+0")
+INFO:app.tasks.parse_task:
+Parsed 263 files for repo 
+5fee43d9-5ed5-4605-b71f-93
+5cad88e5b8
+INFO:httpx:HTTP Request: 
+POST http://localhost:8000
+/api/parse/store 
+"HTTP/1.1 500 Internal 
+Server Error"
+ERROR:app.tasks.parse_task
+:HTTP error sending parse 
+results: Server error 
+'500 Internal Server 
+Error' for url 'http://loc
+alhost:8000/api/parse/stor
+e'
+For more information 
+check: https://developer.m
+ozilla.org/en-US/docs/Web/
+HTTP/Status/500
+ERROR:celery.app.trace:Tas
+k tasks.parse_repo[0434bcd
+5-7cc6-4fc1-9797-c37d839f0
+c2a] raised unexpected: 
+HTTPError("Server error 
+'500 Internal Server 
+Error' for url 'http://loc
+alhost:8000/api/parse/stor
+e'\nFor more information 
+check: https://developer.m
+ozilla.org/en-US/docs/Web/
+HTTP/Status/500")
+Traceback (most recent 
+call last):
+  File "C:\Users\harsh\MER
+N\Groove_AI\worker\venv\Li
+b\site-packages\celery\app
+\trace.py", line 585, in 
+trace_task
+    R = retval = 
+fun(*args, **kwargs)
+                 
+~~~^^^^^^^^^^^^^^^^^
+  File "C:\Users\harsh\MER
+N\Groove_AI\worker\app\tas
+ks\parse_task.py", line 
+86, in parse_repo
+    raise 
+self.retry(exc=exc)
+          
+~~~~~~~~~~^^^^^^^^^
+  File "C:\Users\harsh\MER
+N\Groove_AI\worker\venv\Li
+b\site-packages\celery\app
+\task.py", line 769, in 
+retry
+    
+raise_with_context(exc)
+    
+~~~~~~~~~~~~~~~~~~^^^^^
+  File "C:\Users\harsh\MER
+N\Groove_AI\worker\app\tas
+ks\parse_task.py", line 
+83, in parse_repo
+    
+resp.raise_for_status()
+    
+~~~~~~~~~~~~~~~~~~~~~^^
+  File "C:\Users\harsh\MER
+N\Groove_AI\worker\venv\Li
+b\site-packages\httpx\_mod
+els.py", line 829, in 
+raise_for_status
+    raise 
+HTTPStatusError(message, 
+request=request, 
+response=self)
+httpx.HTTPError: Server 
+error '500 Internal 
+Server Error' for url 'htt
+p://localhost:8000/api/par
+se/store'
+For more information 
+check: https://developer.m
+ozilla.org/en-US/docs/Web/
+HTTP/Status/500
+Starting direct parse for 5fee43d9-5ed5-4605-b71f-935cad88e5b8...
+Task status: FAILURE
+Result: Server error '500 Internal Server Error' for url 'http://localhost:8000/api/parse/store'
+For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/500
