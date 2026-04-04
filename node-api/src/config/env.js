@@ -6,11 +6,7 @@ export const ENV = {
   PORT: parseInt(process.env.PORT || '5000', 10),
 
   // Database
-  DB_HOST: process.env.DB_HOST || 'localhost',
-  DB_PORT: parseInt(process.env.DB_PORT || '5432', 10),
-  DB_NAME: process.env.DB_NAME || 'grooveai',
-  DB_USER: process.env.DB_USER || 'postgres',
-  DB_PASSWORD: process.env.DB_PASSWORD || '',
+  DATABASE_URL: process.env.DATABASE_URL || '',
 
   // Redis
   REDIS_URL: process.env.REDIS_URL || 'redis://localhost:6379',

@@ -1,0 +1,162 @@
+# groove-ai
+
+> **AI-Powered GitHub Repository Analyser** — dependency graphs, semantic search, code explanations, execution flow visualization, and more.
+
+---
+
+## Architecture
+
+```
+groove-ai/
+├── client/           # React + Vite frontend
+├── node-api/         # Node.js + Express API Gateway (auth, jobs)
+├── fastapi-engine/   # FastAPI (AI, parsing, graph engine)
+├── worker/           # Celery async job worker
+├── database/         # DB schemas & migrations
+├── infra/            # Docker, deployment configs
+├── shared/           # Shared types / utilities
+├── scripts/          # Setup scripts
+├── docker-compose.yml
+└── .env.example
+```
+
+---
+
+## Authentication
+
+The platform uses a **dual-auth** approach:
+
+| Method | Flow |
+|---|---|
+| Email + Password | Register / Login → Node API issues JWT access + refresh tokens |
+| Google OAuth 2.0 | Passport.js Google strategy → redirects back with access token |
+
+### Token Strategy
+- **Access Token** — short-lived (7d), stored in `localStorage`, sent via `Authorization: Bearer <token>`.
+- **Refresh Token** — long-lived (30d), stored in an `httpOnly` cookie + DB. The Axios interceptor silently refreshes on `401`.
+- **FastAPI** validates the same JWT secret to protect engine routes.
+
+---
+
+## Quick Start
+
+### 1. Clone & configure environment
+
+```bash
+git clone <repo-url> groove-ai
+cd groove-ai
+
+# Copy env files and fill in values
+cp .env.example .env
+cp node-api/.env.example node-api/.env
+cp client/.env.example client/.env
+cp fastapi-engine/.env.example fastapi-engine/.env
+cp worker/.env.example worker/.env
+```
+
+### 2. Google OAuth Setup
+1. Go to [Google Cloud Console](https://console.cloud.google.com/) → **APIs & Services → Credentials**.
+2. Create an **OAuth 2.0 Client ID** (Web Application).
+3. Add `http://localhost:5000/api/auth/google/callback` as an Authorized Redirect URI.
+4. Copy the **Client ID** and **Client Secret** into `node-api/.env`.
+
+### 3. Start with Docker Compose
+
+```bash
+docker-compose up --build
+```
+
+Services:
+| Service | URL |
+|---|---|
+| Client (React) | http://localhost:3000 |
+| Node API | http://localhost:5000 |
+| FastAPI Engine | http://localhost:8000 |
+| PostgreSQL | localhost:5432 |
+| Redis | localhost:6379 |
+| Neo4j Browser | http://localhost:7474 |
+
+### 4. Start manually (dev)
+
+**Node API:**
+```bash
+cd node-api
+npm install
+npm run dev
+```
+
+**FastAPI Engine:**
+```bash
+cd fastapi-engine
+python -m venv venv
+venv\Scripts\activate     # Windows
+pip install -r requirements.txt
+uvicorn app.main:app --reload --port 8000
+```
+
+**Client:**
+```bash
+cd client
+npm install
+npm run dev
+```
+
+---
+
+## API Reference (Auth)
+
+### `POST /api/auth/register`
+```json
+{ "name": "Jane", "email": "jane@example.com", "password": "secret123" }
+```
+Returns: `{ accessToken, user }`
+
+### `POST /api/auth/login`
+```json
+{ "email": "jane@example.com", "password": "secret123" }
+```
+Returns: `{ accessToken, user }`
+
+### `GET /api/auth/me`
+Header: `Authorization: Bearer <token>`  
+Returns: `{ user }`
+
+### `POST /api/auth/refresh`
+Uses `refreshToken` httpOnly cookie.  
+Returns: `{ accessToken }`
+
+### `POST /api/auth/logout`
+Clears the refresh token from DB and cookie.
+
+### `GET /api/auth/google`
+Redirects to Google OAuth consent screen.
+
+### `GET /api/auth/google/callback`
+Google redirects here → API redirects to: `http://localhost:3000/auth/callback?token=<accessToken>`
+
+---
+
+## .env Files
+
+| File | Purpose |
+|---|---|
+| `.env.example` | Root — shared variables overview |
+| `client/.env.example` | Vite env vars (`VITE_` prefix) |
+| `node-api/.env.example` | Express + Passport + DB config |
+| `fastapi-engine/.env.example` | FastAPI engine config |
+| `worker/.env.example` | Celery broker / backend config |
+
+---
+
+## Tech Stack
+
+| Layer | Technologies |
+|---|---|
+| Frontend | React 18, Vite, Zustand, React Router, Axios |
+| API Gateway | Node.js, Express, Passport.js, JWT, Sequelize |
+| AI Engine | FastAPI, LangChain, FAISS, Tree-sitter, OpenAI |
+| Graph DB | Neo4j |
+| Relational DB | PostgreSQL |
+| Cache / Queue | Redis, BullMQ / Celery |
+| Code Editor | Monaco Editor |
+| Graph Viz | React Flow |
