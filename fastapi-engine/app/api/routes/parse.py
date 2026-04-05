@@ -15,10 +15,17 @@ logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
+class FunctionItem(BaseModel):
+    name: str
+    type: Optional[str] = "function"
+    start_line: int
+    end_line: int
+
 class CodeChunk(BaseModel):
     file_path: str
     content: str
     extension: str
+    functions: Optional[List[FunctionItem]] = []
 
 class ParseStoreRequest(BaseModel):
     repo_id: str
@@ -55,31 +62,9 @@ async def store_parsed_repo(
             {"status": "parsing", "repo_id": repo_id}
         )
 
-        # 2. Store chunks and extract functions
+        # 2. Store chunks + use pre-extracted functions from worker
         insert_params = []
         function_params = []
-        
-        import re
-        def find_funcs(content, ext):
-            funcs = []
-            lines = content.split('\n')
-            if ext == '.py':
-                # def name(args):
-                for i, line in enumerate(lines):
-                    m = re.match(r'^\s*def\s+(\w+)\s*\(', line)
-                    if m:
-                        name = m.group(1)
-                        # Heuristic: end at next def or end of file
-                        funcs.append({"name": name, "start": i+1, "end": i+10}) # placeholder end
-            elif ext in ['.js', '.ts', '.jsx', '.tsx']:
-                # function name(args) { or const name = (args) => {
-                for i, line in enumerate(lines):
-                    m = re.search(r'(?:function\s+(\w+)|(?:const|let|var)\s+(\w+)\s*=\s*(?:\(.*\)|[\w\d]+)\s*=>)', line)
-                    if m:
-                        name = (m.group(1) or m.group(2))
-                        if name:
-                            funcs.append({"name": name, "start": i+1, "end": i+10})
-            return funcs
 
         for i, c in enumerate(chunks):
             insert_params.append({
@@ -89,16 +74,15 @@ async def store_parsed_repo(
                 "content": c.content,
                 "chunkIndex": i
             })
-            
-            # Extract functions
-            extracted = find_funcs(c.content, c.extension)
-            for f in extracted:
+
+            # Use functions pre-extracted by the worker (accurate start_line + end_line)
+            for fn in (c.functions or []):
                 function_params.append({
                     "repoId": repo_id,
                     "filePath": c.file_path,
-                    "name": f["name"],
-                    "start": f["start"],
-                    "end": f["end"]
+                    "name": fn.name,
+                    "start": fn.start_line,
+                    "end": fn.end_line,
                 })
 
         if insert_params:
@@ -114,8 +98,10 @@ async def store_parsed_repo(
             await db.execute(
                 text('''
                     INSERT INTO functions ("repoId", "filePath", name, "startLine", "endLine")
-            VALUES (CAST(:repo_id AS uuid), :filePath, :name, :start, :end)
-        '''), function_params)
+                    VALUES (CAST(:repoId AS uuid), :filePath, :name, :start, :end)
+                '''),
+                function_params
+            )
 
         stored_count = len(chunks)
 

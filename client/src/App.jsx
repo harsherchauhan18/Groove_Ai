@@ -7,6 +7,7 @@ import LoginPage from './pages/LoginPage.jsx';
 import OAuthCallbackPage from './pages/OAuthCallbackPage.jsx';
 import RepositoriesPage from './pages/RepositoriesPage.jsx';
 import DashboardPage from './pages/DashboardPage.jsx';
+import GraphIntelligencePage from './pages/GraphIntelligencePage.jsx';
 import InsightsPage from './pages/InsightsPage.jsx';
 import RepoPage from './pages/RepoPage.jsx';
 import ChatPage from './pages/ChatPage.jsx';
@@ -42,12 +43,22 @@ export default function App() {
         }
       />
 
-      {/* Graph Intelligence / bi-directional sync */}
+      {/* Graph Intelligence — full bi-directional sync */}
+      <Route
+        path="/graph/:repoId"
+        element={
+          <ProtectedRoute>
+            <GraphIntelligencePage />
+          </ProtectedRoute>
+        }
+      />
+
+      {/* Graph Intelligence (legacy route) */}
       <Route
         path="/dashboard/sync/:repoId"
         element={
           <ProtectedRoute>
-            <DashboardPage />
+            <GraphIntelligencePage />
           </ProtectedRoute>
         }
       />

@@ -29,16 +29,18 @@ async def get_file_content(
     try:
         logger.info(f"Reconstructing code for: {filePath} in repo: {repo_id}")
         
+        filePath_alt = filePath.replace("/", "\\")
+        
         # Casting repo_id to uuid is necessary for PostgreSQL uuid columns comparison
         query = text('''
             SELECT content 
             FROM code_chunks 
             WHERE "repoId" = CAST(:repo_id AS uuid) 
-            AND "filePath" = :file_path 
+            AND ("filePath" = :file_path OR "filePath" = :file_path_alt)
             ORDER BY "chunkIndex" ASC
         ''')
         
-        result = await db.execute(query, {"repo_id": repo_id, "file_path": filePath})
+        result = await db.execute(query, {"repo_id": repo_id, "file_path": filePath, "file_path_alt": filePath_alt})
         chunks = result.fetchall()
         
         if not chunks:

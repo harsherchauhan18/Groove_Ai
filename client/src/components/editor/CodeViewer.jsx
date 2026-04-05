@@ -27,7 +27,8 @@ export default function CodeViewer({ repoId }) {
       const fetchFileContent = async () => {
         setLoading(true);
         try {
-          const resp = await axios.get(`${FASTAPI_URL}/api/code/${repoId}?filePath=${activeFilePath}`, {
+          const resp = await axios.get(`${FASTAPI_URL}/api/code/${repoId}`, {
+            params: { filePath: activeFilePath },
             headers: { Authorization: `Bearer ${token}` }
           });
           setContent(resp.data.content);
