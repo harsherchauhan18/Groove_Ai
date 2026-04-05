@@ -24,30 +24,55 @@ SUPPORTED_EXTENSIONS = {
 }
 
 
+# Folders to skip entirely
+EXCLUDED_DIRS = {
+    "node_modules", "vendor", "__pycache__", "venv", ".venv", 
+    "dist", "build", "out", "target", "bin", "obj",
+    "svg", "images", "imgs", "assets", "public", "media", "tests",
+    "docs", "examples", ".git", ".github", ".vscode", ".idea"
+}
+
+# Maximum file size to process (500 KB)
+MAX_FILE_SIZE = 500 * 1024
+
 def _walk_repo(repo_path: str) -> list[dict]:
     """Return a list of {path, content} dicts for all supported source files."""
     chunks = []
     for root, dirs, files in os.walk(repo_path):
-        # Skip hidden / dependency directories
+        # 1. Skip hidden and non-code directories
         dirs[:] = [
             d for d in dirs
-            if not d.startswith(".") and d not in {"node_modules", "__pycache__", "venv", ".venv"}
+            if not d.startswith(".") and d.lower() not in EXCLUDED_DIRS
         ]
+        
         for fname in files:
             ext = os.path.splitext(fname)[1].lower()
             if ext not in SUPPORTED_EXTENSIONS:
                 continue
+            
             fpath = os.path.join(root, fname)
+            
+            # 2. Skip files that are likely too large for LLM analysis or binaries
             try:
+                stats = os.stat(fpath)
+                if stats.st_size > MAX_FILE_SIZE:
+                    logger.debug("Skipping large file: %s (%d bytes)", fpath, stats.st_size)
+                    continue
+                
                 with open(fpath, "r", encoding="utf-8", errors="ignore") as f:
                     content = f.read()
+                
+                # Double check for binary characters just in case
+                if '\0' in content:
+                    continue
+
                 chunks.append({
                     "file_path": os.path.relpath(fpath, repo_path),
                     "content": content,
                     "extension": ext,
                 })
-            except OSError:
-                pass
+            except (OSError, UnicodeDecodeError):
+                continue
     return chunks
 
 

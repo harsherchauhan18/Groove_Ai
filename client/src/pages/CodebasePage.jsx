@@ -36,66 +36,87 @@ export default function CodebasePage() {
   const isRepoActiveAndProcessing = activeRepoId && repoStatusMap[activeRepoId] !== 'completed' && repoStatusMap[activeRepoId] !== 'failed';
 
   return (
-    <div className="dashboard-container" style={{ display: 'flex', height: '100vh', background: '#0a0a0a', color: 'white' }}>
-      <aside className="sidebar" style={{ width: '250px', borderRight: '1px solid #333', padding: '1rem', display: 'flex', flexDirection: 'column' }}>
-        <div className="logo-section" style={{ padding: '1rem', fontWeight: 'bold', fontSize: '1.2rem' }}>
-          groove-ai
+    <div className="dashboard-container">
+      <aside className="sidebar">
+        <div className="logo-section">
+          <span className="logo-text">groove-ai</span>
         </div>
-        <nav className="nav-menu" style={{ flex: 1, marginTop: '2rem' }}>
-          <div className="nav-item" onClick={() => navigate('/dashboard')} style={{ padding: '0.8rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <LayoutDashboard size={20} /> Dashboard
+        <nav className="nav-menu">
+          <div className="nav-item" onClick={() => navigate('/dashboard')}>
+            <LayoutDashboard /> Dashboard
           </div>
-          <div className="nav-item active" style={{ padding: '0.8rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '10px', background: '#222', borderRadius: '8px' }}>
-            <Code size={20} /> Codebase
+          <div className="nav-item active">
+            <Code /> Codebase
           </div>
-          <div className="nav-item" style={{ padding: '0.8rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <BarChart3 size={20} /> Insights
+          <div className="nav-item">
+            <BarChart3 /> Insights
           </div>
-          <div className="nav-item" style={{ padding: '0.8rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <Settings size={20} /> Settings
+          <div className="nav-item">
+            <Settings /> Settings
           </div>
         </nav>
-        <div className="sidebar-footer" style={{ marginTop: 'auto', padding: '1rem' }}>
-           <button className="logout-btn" onClick={handleLogout} style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', background: 'transparent', color: '#ff4444', border: 'none' }}>
+        <div className="sidebar-footer">
+          <div className="user-profile">
+            <div className="user-avatar" />
+            <div className="user-info">
+              <span className="user-name">{user?.name}</span>
+              <span className="user-email">{user?.email}</span>
+            </div>
+          </div>
+          <button className="logout-btn" onClick={handleLogout}>
              <LogOut size={16} /> Sign Out
-           </button>
+          </button>
         </div>
       </aside>
 
-      <main className="main-content" style={{ flex: 1, display: 'flex', flexDirection: 'column', height: '100%', overflow: 'hidden' }}>
+      <main className="main-content" style={{ padding: activeRepoId ? '0' : 'var(--space-8)', maxWidth: activeRepoId ? 'none' : '1200px' }}>
         {!activeRepoId && (
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} style={{ padding: '2rem', flex: 1, overflowY: 'auto' }}>
-            <h2>Codebase Hub</h2>
-            <p style={{ color: '#aaa', marginBottom: '2rem' }}>Manage and explore your analyzed repositories.</p>
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+            <div className="header-section">
+              <h1 className="welcome-text">Codebase Hub</h1>
+              <p className="subtitle-text">Manage and explore your analyzed repositories with AI assistance.</p>
+            </div>
             <RepoInput />
-            <br />
-            <RepoList />
+            <div style={{ marginTop: 'var(--space-8)' }}>
+              <RepoList />
+            </div>
           </motion.div>
         )}
 
         {isRepoActiveAndProcessing && (
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex-1 flex flex-col items-center justify-center p-8 text-center space-y-6">
-            <button 
-              onClick={() => setActiveRepoId(null)} 
-              className="absolute top-6 left-6 flex items-center gap-2 text-sm text-gray-500 hover:text-white transition-colors"
-            >
-              <ArrowLeft size={16} /> Back to dashboard
-            </button>
-            
-            <div className="space-y-2">
-              <h2 className="text-2xl font-semibold tracking-tight text-emerald-400 capitalize">
-                {repoStatusMap[activeRepoId]}...
-              </h2>
-              <p className="text-gray-500 max-w-md mx-auto text-sm leading-relaxed">
-                {repoStatusMap[activeRepoId] === 'parsing' 
-                  ? "We're breaking down your codebase into intelligent chunks. This might take a moment for larger projects."
-                  : repoStatusMap[activeRepoId] === 'analyzing'
-                  ? "Mapping dependencies and generating semantic graphs. Almost ready."
-                  : "Connecting to the source and fetching repository data."}
-              </p>
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex-1 flex flex-col items-center justify-center p-8 text-center h-full">
+            <div className="glass-card p-12 max-w-lg w-full space-y-6 relative overflow-hidden">
+               <div className="absolute top-0 left-0 w-full h-1 bg-white/5 overflow-hidden">
+                 <div className="h-full bg-brand-primary animate-progress-indefinite" style={{ width: '40%' }}></div>
+               </div>
+               
+               <button 
+                 onClick={() => setActiveRepoId(null)} 
+                 className="absolute top-4 left-4 p-2 rounded-full hover:bg-white/5 text-gray-500 hover:text-white transition-colors"
+               >
+                 <ArrowLeft size={16} />
+               </button>
+               
+               <div className="space-y-4">
+                 <div className="mx-auto w-16 h-16 rounded-2xl bg-indigo-500/10 flex items-center justify-center text-indigo-400 mb-6">
+                    <Code size={32} />
+                 </div>
+                 <h2 className="text-2xl font-bold tracking-tight text-white capitalize">
+                   {repoStatusMap[activeRepoId]}...
+                 </h2>
+                 <p className="text-gray-400 text-sm leading-relaxed">
+                   {repoStatusMap[activeRepoId] === 'parsing' 
+                     ? "Intelligently deconstructing your codebase chunks. Large projects might take a moment."
+                     : repoStatusMap[activeRepoId] === 'analyzing'
+                     ? "Building semantic graphs and mapping relationships. We're getting closer."
+                     : "Establishing connection and pulling repository data."}
+                 </p>
+               </div>
+               
+               <div className="pt-4">
+                 <ProgressIndicator repoId={activeRepoId} />
+               </div>
             </div>
-            
-            <ProgressIndicator repoId={activeRepoId} />
           </motion.div>
         )}
 
@@ -103,56 +124,54 @@ export default function CodebasePage() {
           <motion.div 
             initial={{ opacity: 0 }} 
             animate={{ opacity: 1 }} 
-            className="flex flex-1 h-full overflow-hidden bg-[#0e0e0e]"
+            className="codebase-explorer-container"
           >
-             {/* Left: Enhanced File Explorer */}
-             <div className="w-[280px] border-r border-[#1e1e1e] flex flex-col flex-shrink-0 bg-[#0d0d0d]">
-               <div className="p-4 border-b border-[#1e1e1e] flex items-center justify-between">
+             {/* Left: Explorer Panel */}
+             <aside className="explorer-panel" style={{ width: '300px' }}>
+               <div className="panel-header">
                   <div className="flex items-center gap-3">
                     <button 
                       onClick={() => setActiveRepoId(null)} 
-                      className="p-1.5 rounded-md hover:bg-white/10 transition-colors text-gray-400"
+                      className="p-2 rounded-lg bg-white/5 hover:bg-white/10 transition-colors text-gray-400"
                     >
                       <ArrowLeft size={18} />
                     </button>
-                    <span className="font-semibold text-sm tracking-wide">Files</span>
+                    <span className="font-bold text-sm tracking-tight">Explorer</span>
                   </div>
-                  <div className="px-2 py-0.5 rounded text-[10px] bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 font-bold uppercase">
-                    Ready
-                  </div>
+                  <div className="status-ready-pill">Live</div>
                </div>
-               <FileExplorer />
-             </div>
+               <div className="panel-content scrollbar-custom">
+                 <FileExplorer />
+               </div>
+             </aside>
 
-             {/* Center: Graph */}
-             <div className="flex-1 border-r border-[#1e1e1e] flex flex-col bg-[#0a0a0a]">
-               <div className="p-4 border-b border-[#1e1e1e]">
-                 <h3 className="text-xs font-bold text-gray-500 uppercase tracking-widest flex items-center gap-2">
-                   <div className="w-1.5 h-1.5 rounded-full bg-emerald-500"></div>
-                   Dependency Graph
+             {/* Center: Graph Panel */}
+             <section className="explorer-panel" style={{ flex: 1.2 }}>
+               <div className="panel-header">
+                 <h3 className="panel-title">
+                   <div className="w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]"></div>
+                   Dependency Map
                  </h3>
                </div>
-               <div className="flex-1 relative">
+               <div className="panel-content">
                  <RepoGraphViewer repoId={activeRepoId} />
                </div>
-             </div>
+             </section>
 
-             {/* Right: Code */}
-             <div className="flex-[1.5] flex flex-col">
-               <div className="p-4 border-b border-[#1e1e1e] flex items-center justify-between bg-[#111]">
-                 <h3 className="text-xs font-bold text-gray-500 uppercase tracking-widest">
-                   Source Code
-                 </h3>
+             {/* Right: Code Editor Panel */}
+             <section className="explorer-panel" style={{ flex: 1.8, borderRight: 'none' }}>
+               <div className="panel-header" style={{ background: 'rgba(0,0,0,0.2)' }}>
+                 <h3 className="panel-title">Source View</h3>
                  {activeRepoId && (
-                    <span className="text-[10px] text-gray-600 font-mono italic">
-                      Repo ID: {activeRepoId.slice(0, 8)}
+                    <span className="text-[10px] text-gray-600 font-mono tracking-tighter uppercase">
+                      ID: {activeRepoId.slice(0, 8)}
                     </span>
                  )}
                </div>
-               <div className="flex-1">
+               <div className="panel-content bg-[#050505]">
                  <CodeViewer repoId={activeRepoId} />
                </div>
-             </div>
+             </section>
           </motion.div>
         )}
       </main>

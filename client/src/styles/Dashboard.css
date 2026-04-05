@@ -335,6 +335,72 @@
   font-weight: 700;
 }
 
+/* ── Codebase Explorer ── */
+.codebase-explorer-container {
+  display: flex;
+  flex: 1;
+  height: 100%;
+  overflow: hidden;
+  background: var(--color-bg-primary);
+}
+
+.explorer-panel {
+  background: var(--color-bg-glass);
+  backdrop-filter: blur(20px);
+  border-right: 1px solid var(--color-border-subtle);
+  display: flex;
+  flex-direction: column;
+  transition: var(--transition-base);
+}
+
+.panel-header {
+  height: 64px;
+  padding: 0 var(--space-6);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--color-border-subtle);
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.panel-title {
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--color-text-secondary);
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.panel-content {
+  flex-grow: 1;
+  overflow: hidden;
+  position: relative;
+}
+
+.glass-card {
+  background: var(--color-bg-glass);
+  backdrop-filter: blur(12px);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-xl);
+}
+
+.status-ready-pill {
+  font-size: 0.625rem;
+  font-weight: 800;
+  padding: 2px 8px;
+  border-radius: var(--radius-full);
+  background: rgba(16, 185, 129, 0.1);
+  color: #10b981;
+  border: 1px solid rgba(16, 185, 129, 0.2);
+  text-transform: uppercase;
+}
+
+/* ──────────────────────────────────────────────────────────────── */
+
 @media (max-width: 1024px) {
   .stats-container {
     grid-template-columns: repeat(2, 1fr);
