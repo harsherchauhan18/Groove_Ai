@@ -1,0 +1,12 @@
+Table users:
+  updatedAt, role, isVerified, lastLoginAt, createdAt, id, refreshToken, name, email, password, googleId, avatar
+Table repositories:
+  id, userId, lastAnalyzedAt, metadata, createdAt, updatedAt, status, name, url, error, branch
+Table code_chunks:
+  id, repoId, chunkIndex, createdAt, updatedAt, embeddingId, filePath, extension, content
+Table chat_threads:
+  id, repo_id, user_id, created_at, title
+Table chat_messages:
+  id, thread_id, created_at, role, content
+Table chat_embeddings:
+  id, message_id, thread_id, repo_id, embedding

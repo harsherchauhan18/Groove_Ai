@@ -1,0 +1,27 @@
+import asyncio
+from sqlalchemy.ext.asyncio import create_async_engine
+from sqlalchemy import text
+
+url = 'postgresql+asyncpg://neondb_owner:npg_9RyWmixN5ZIU@ep-delicate-tree-anzcxsrh.c-6.us-east-1.aws.neon.tech/neondb?ssl=require'
+
+async def setup():
+    engine = create_async_engine(url)
+    async with engine.connect() as conn:
+        print("Creating functions table...")
+        await conn.execute(text('''
+            CREATE TABLE IF NOT EXISTS functions (
+                id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+                "repoId" UUID REFERENCES repositories(id),
+                "filePath" TEXT,
+                name TEXT,
+                "startLine" INTEGER,
+                "endLine" INTEGER,
+                "createdAt" TIMESTAMP DEFAULT NOW()
+            )
+        '''))
+        await conn.commit()
+        print("Success.")
+    await engine.dispose()
+
+if __name__ == "__main__":
+    asyncio.run(setup())

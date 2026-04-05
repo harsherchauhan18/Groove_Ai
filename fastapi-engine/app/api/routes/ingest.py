@@ -69,13 +69,15 @@ async def _create_repo_record(repo_id: str, user_id: str, repo_url: str):
 
 
 @router.get("/")
-async def get_repositories(db: AsyncSession = Depends(get_db)):
+async def get_repositories(user=Depends(verify_token), db: AsyncSession = Depends(get_db)):
     """
-    Get all repositories.
+    Get all repositories for the current user.
     """
     try:
+        user_id = user.get("id")
         result = await db.execute(
-            text('SELECT id, name, url, status, "lastAnalyzedAt", "createdAt", "updatedAt" FROM repositories ORDER BY "updatedAt" DESC')
+            text('SELECT id, name, url, status, "lastAnalyzedAt", "createdAt", "updatedAt" FROM repositories WHERE "userId" = CAST(:user_id AS uuid) ORDER BY "updatedAt" DESC'),
+            {"user_id": user_id}
         )
         repos = result.mappings().all()
         return [dict(r) for r in repos]

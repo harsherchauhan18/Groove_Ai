@@ -1,0 +1,1 @@
+TABLES: users, repositories, code_chunks, chat_threads, chat_messages, chat_embeddings
