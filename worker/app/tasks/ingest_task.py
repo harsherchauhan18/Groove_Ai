@@ -55,7 +55,7 @@ def ingest_repo(self, repo_url: str, repo_id: str, user_id: Optional[str] = None
         else:
             logger.info("Cloning %s → %s", repo_url, local_path)
             subprocess.run(
-                ["git", "clone", "--depth=1", repo_url, local_path],
+                ["git", "clone", repo_url, local_path],
                 check=True,
                 capture_output=True,
             )

@@ -2,10 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
-  LayoutDashboard, 
   Github, 
-  Settings, 
-  LogOut, 
   Plus, 
   Search, 
   Clock, 
@@ -15,11 +12,14 @@ import {
   ChevronRight,
   Code,
   FileCode,
+  Bot,
+  Compass,
   BarChart3,
   X
 } from 'lucide-react';
 import useAuthStore from '../store/useAuthStore.js';
 import { repositoryService } from '../services/repositoryService.js';
+import Sidebar from '../components/common/Sidebar.jsx';
 import '../styles/Dashboard.css';
 import ChatInterface from '../components/chat/ChatInterface.jsx';
 
@@ -56,11 +56,6 @@ export default function DashboardPage() {
     }
   };
 
-  const handleLogout = async () => {
-    await logout();
-    navigate('/login', { replace: true });
-  };
-
   const handleIngest = async (e) => {
     e.preventDefault();
     if (!repoUrl) return;
@@ -80,51 +75,7 @@ export default function DashboardPage() {
 
   return (
     <div className="dashboard-container">
-      {/* Sidebar */}
-      <aside className="sidebar">
-        <div className="logo-section">
-          <span className="logo-text">groove-ai</span>
-        </div>
-
-        <nav className="nav-menu">
-          <div className="nav-item active">
-            <LayoutDashboard size={20} />
-            Dashboard
-          </div>
-          <div className="nav-item">
-            <Code size={20} />
-            Projects
-          </div>
-          <div className="nav-item">
-            <BarChart3 size={20} />
-            Insights
-          </div>
-          <div className="nav-item">
-            <Settings size={20} />
-            Settings
-          </div>
-        </nav>
-
-        <div className="sidebar-footer">
-          <div className="user-profile">
-            {user?.avatar ? (
-              <img src={user.avatar} alt={user.name} className="user-avatar" />
-            ) : (
-              <div className="user-avatar" style={{ background: 'var(--color-brand-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.75rem' }}>
-                {user?.name?.charAt(0) || 'U'}
-              </div>
-            )}
-            <div className="user-info">
-              <span className="user-name">{user?.name || 'Developer'}</span>
-              <span className="user-email">{user?.email || 'dev@groove.ai'}</span>
-            </div>
-          </div>
-          <button className="logout-btn" onClick={handleLogout} disabled={isLoading}>
-            <LogOut size={16} />
-            <span>Sign Out</span>
-          </button>
-        </div>
-      </aside>
+      <Sidebar />
 
       {/* Main Content */}
       <main className="main-content">
@@ -188,7 +139,7 @@ export default function DashboardPage() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: index * 0.1 }}
                 className="repo-card"
-                onClick={() => repo.status === 'completed' && setSelectedRepoId(repo.id)}
+                onClick={() => repo.status === 'completed' && navigate(`/insights/${repo.id}`)}
                 style={{ cursor: repo.status === 'completed' ? 'pointer' : 'default' }}
               >
                 <div className="repo-header">
@@ -208,22 +159,78 @@ export default function DashboardPage() {
                   <StatusBadge status={repo.status} />
                 </div>
                 
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 'auto' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <div style={{ width: '40px', height: '4px', background: 'rgba(255,255,255,0.1)', borderRadius: '2px' }}>
-                      <div 
-                        style={{ 
-                          width: `${repo.status === 'completed' ? 100 : (repo.status === 'parsing' ? 40 : 10)}%`, 
-                          height: '100%', 
-                          background: 'var(--color-brand-primary)', 
-                          borderRadius: '2px' 
-                        }} 
-                      />
+                <div className="repo-actions" style={{ display: 'flex', gap: '8px', marginTop: '1.5rem', flexWrap: 'wrap' }}>
+                  {repo.status === 'completed' ? (
+                    <>
+                      <button 
+                        onClick={(e) => { e.stopPropagation(); setSelectedRepoId(repo.id); }}
+                        className="repo-action-btn chatbot-btn"
+                        style={{
+                          flex: 1,
+                          background: 'rgba(99, 102, 241, 0.1)',
+                          border: '1px solid rgba(99, 102, 241, 0.2)',
+                          borderRadius: '8px',
+                          color: '#c7d2fe',
+                          padding: '8px 12px',
+                          fontSize: '0.75rem',
+                          fontWeight: '600',
+                          cursor: 'pointer',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          gap: '6px'
+                        }}
+                      >
+                         <Bot size={14} /> Chatbot
+                      </button>
+                      <button 
+                        onClick={(e) => { e.stopPropagation(); navigate(`/repo/${repo.id}`); }}
+                        className="repo-action-btn navigator-btn"
+                        style={{
+                          flex: 1,
+                          background: 'rgba(16, 185, 129, 0.1)',
+                          border: '1px solid rgba(16, 185, 129, 0.2)',
+                          borderRadius: '8px',
+                          color: '#d1fae5',
+                          padding: '8px 12px',
+                          fontSize: '0.75rem',
+                          fontWeight: '600',
+                          cursor: 'pointer',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          gap: '6px'
+                        }}
+                      >
+                         <Compass size={14} /> Navigator
+                      </button>
+                      <button 
+                        onClick={(e) => { e.stopPropagation(); navigate(`/insights/${repo.id}`); }}
+                        className="repo-action-btn insights-btn"
+                        style={{
+                          flex: 1,
+                          background: 'rgba(245, 158, 11, 0.1)',
+                          border: '1px solid rgba(245, 158, 11, 0.2)',
+                          borderRadius: '8px',
+                          color: '#fef3c7',
+                          padding: '8px 12px',
+                          fontSize: '0.75rem',
+                          fontWeight: '600',
+                          cursor: 'pointer',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          gap: '6px'
+                        }}
+                      >
+                         <BarChart3 size={14} /> Insights
+                      </button>
+                    </>
+                  ) : (
+                    <div style={{ color: '#475569', fontSize: '0.75rem', fontStyle: 'italic', padding: '8px 0' }}>
+                      Repository analysis in progress...
                     </div>
-                  </div>
-                  <div style={{ color: 'var(--color-text-secondary)' }}>
-                    <ChevronRight size={18} />
-                  </div>
+                  )}
                 </div>
               </motion.div>
             ))
