@@ -19,8 +19,6 @@ Dependency graphs · Semantic search · AI code explanations · Execution flow v
 
 <br/>
 
-[**Live Demo**](#) &nbsp;·&nbsp; [**Report Bug**](https://github.com/harsherchauhan18/Groove_Ai/issues) &nbsp;·&nbsp; [**Request Feature**](https://github.com/harsherchauhan18/Groove_Ai/issues)
-
 </div>
 
 ---
