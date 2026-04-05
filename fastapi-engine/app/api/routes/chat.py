@@ -180,16 +180,34 @@ async def send_message(
         chunks = cr.fetchall()
         context_str = "\n\n".join([f"--- File: {row[1]} ---\n{row[0]}" for row in chunks])
 
+    # Retrieve Project Overview (All Files)
+    files_res = await db.execute(
+        text('SELECT DISTINCT "filePath" FROM code_chunks WHERE "repoId" = CAST(:repo_id AS uuid) LIMIT 100'),
+        {"repo_id": payload.repo_id}
+    )
+    repo_files = [r[0] for r in files_res.fetchall()]
+    repo_structure = "\n".join(repo_files)
 
     # 4. Construct Prompt
     memory_block = "\n".join([f"{m['role'].upper()}: {m['content']}" for m in semantic_msgs])
     recent_block = "\n".join([f"{m['role'].upper()}: {m['content']}" for m in recent_msgs])
 
-    system_prompt = f"""You are an expert code assistant for this repository.
-MEMORY (Relevant past context):
+    system_prompt = f"""You are the Groove AI Technical Lead for this specific repository.
+Your role is to answer questions strictly based on the provided codebase.
+
+STRICT RULES:
+1. ONLY use the context snippets and repository structure provided below.
+2. If the answer is not in the context, say: "I cannot find specific evidence for that in this repository."
+3. Avoid generic programming advice unless it directly explains a pattern seen in this code.
+4. When mentioning logic, quote the filename and specific implementation details.
+
+REPOSITORY OVERVIEW (Partial File List):
+{repo_structure}
+
+SEMANTIC MEMORY (Relevant past context):
 {memory_block}
 
-RECENT CHAT:
+RECENT CONVERSATION:
 {recent_block}
 
 CODE CONTEXT (Top retrieved snippets):

@@ -68,7 +68,7 @@ export default function InsightsCharts({ timeline, authors, languages }) {
           </div>
        </ChartPanel>
 
-       {/* Language Distribution (Optional) */}
+       {/* Language Distribution */}
        {languages.length > 0 && (
          <ChartPanel title="Repository Stack" icon={<Code size={16} color="#3b82f6" />}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -94,6 +94,54 @@ export default function InsightsCharts({ timeline, authors, languages }) {
                </div>
             </div>
          </ChartPanel>
+       )}
+
+       {/* Detailed Contributor Cards */}
+       {authors.length > 0 && (
+         <div style={{ gridColumn: '1 / -1', marginTop: '1rem' }}>
+            <h4 style={{ color: '#94a3b8', fontSize: '0.9rem', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
+               <Users size={16} color="#10b981" /> Top Contributors
+            </h4>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '1.5rem' }}>
+               {authors.slice(0, 4).map((author, i) => (
+                  <motion.div 
+                     key={i}
+                     whileHover={{ y: -5 }}
+                     style={{
+                        background: 'rgba(15, 23, 42, 0.4)',
+                        border: '1px solid rgba(255, 255, 255, 0.05)',
+                        borderRadius: '1.25rem',
+                        padding: '1.5rem',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '1.25rem'
+                     }}
+                  >
+                     <div style={{ 
+                        width: '48px', 
+                        height: '48px', 
+                        background: `linear-gradient(135deg, ${COLORS[i % COLORS.length]}, transparent)`, 
+                        borderRadius: '12px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        fontSize: '1.2rem',
+                        fontWeight: 'bold',
+                        color: '#fff'
+                     }}>
+                        {author.name[0]}
+                     </div>
+                     <div style={{ flex: 1 }}>
+                        <div style={{ fontWeight: '700', color: '#f1f5f9', fontSize: '1rem' }}>{author.name}</div>
+                        <div style={{ color: '#64748b', fontSize: '0.8rem' }}>{author.commits} commits contribution</div>
+                        <div style={{ height: '4px', background: 'rgba(255,255,255,0.05)', borderRadius: '2px', marginTop: '8px', overflow: 'hidden' }}>
+                           <div style={{ width: `${Math.min((author.commits/authors[0].commits)*100, 100)}%`, height: '100%', background: COLORS[i % COLORS.length] }} />
+                        </div>
+                     </div>
+                  </motion.div>
+               ))}
+            </div>
+         </div>
        )}
 
     </div>

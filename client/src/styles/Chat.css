@@ -10,16 +10,23 @@
   background: rgba(17, 24, 39, 0.7);
   backdrop-filter: blur(10px);
   border: 1px solid var(--chat-border);
-  border-radius: 16px;
+  border-radius: 0;
   display: flex;
-  flex-direction: row; /* Changed to row for sidebar */
-  height: 650px;
+  flex-direction: row;
+  height: 100%;
   width: 100%;
-  max-width: 900px; /* Increased from 800px to fit sidebar well */
-  margin: 2rem auto;
-  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
   color: var(--chat-text);
   overflow: hidden;
+}
+
+/* Global utility: spin animation */
+.spin {
+  animation: spin 1.2s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
 }
 
 .chat-sidebar {
@@ -98,6 +105,7 @@
   font-weight: 600;
   background: linear-gradient(90deg, #818cf8, #c084fc);
   -webkit-background-clip: text;
+  background-clip: text;
   -webkit-text-fill-color: transparent;
 }
 

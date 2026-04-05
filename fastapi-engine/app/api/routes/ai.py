@@ -55,16 +55,39 @@ async def query_repo(
         
         context = "\n\n".join([f"--- File: {row[1]} ---\n{row[0]}" for row in chunks])
         
-        # 3. Handle history for chat memory
+        # 3. Retrieve Project Overview (All Files)
+        files_res = await db.execute(
+            text('SELECT DISTINCT "filePath" FROM code_chunks WHERE "repoId" = CAST(:repo_id AS uuid) LIMIT 50'),
+            {"repo_id": repo_id}
+        )
+        repo_files = [r[0] for r in files_res.fetchall()]
+        repo_structure = "\n".join(repo_files)
+
+        # 4. Construct Prompt
+        system_prompt = f"""You are Groove AI, the lead technical architect for this repository.
+Your task is to provide accurate, codebase-specific insights.
+
+STRICT OPERATING PROCEDURES:
+1. FOCUS: Only provide answers based on the code snippets and repository structure provided.
+2. LIMITS: If the requested information isn't in the provided context, state clearly that you cannot find it in the current codebase.
+3. NO GENERALIZATIONS: Do not give general programming tutorials. Explain how logic is implemented *here*.
+4. CITATIONS: Always mention the relevant file paths when explaining logic.
+
+REPOSITORY STRUCTURE (Partial):
+{repo_structure}
+
+CONTEXT SNIPPETS:
+{context}"""
+
         messages = [
-             {"role": "system", "content": "You are Groove AI, an expert code assistant. Use the provided context from the repository to answer the user's question accurately. Focus on code structure, logic, and explanations. Keep answers concise but insightful."}
+             {"role": "system", "content": system_prompt}
         ]
         
         if payload.history is not None:
             for msg in payload.history:
                 messages.append({"role": msg.get("role", "user"), "content": msg.get("content", "")})
                 
-        messages.append({"role": "user", "content": f"Context snippets:\n{context}\n\nQuestion: {query}"})
+        messages.append({"role": "user", "content": f"User Query: {query}"})
 
         # 4. Call Groq API
         async with httpx.AsyncClient() as client:
@@ -173,8 +196,21 @@ async def navigate_code(
         best_file = sorted_files[0][0]
         confidence = 0.7
         
-        candidates_ctx = "\n".join([f"Option {i}: {fp}\nSnippet: {file_snippets[fp][:300]}..." for i, (fp, _) in enumerate(sorted_files)])
-        prompt = f"Given the query: \"{query}\"\nWhich of these codebase files is most relevant to the question?\nReturn ONLY the index number (0-4).\n\n{candidates_ctx}"
+        # Increase snippet context for better re-ranking
+        candidates_ctx = "\n".join([f"Option {i}: {fp}\nSample Content: {file_snippets[fp][:800]}..." for i, (fp, _) in enumerate(sorted_files)])
+        prompt = f"""Task: Identify the MOST RELEVANT file in the codebase for this user search.
+
+USER QUERY: "{query}"
+
+CANDIDATE FILES:
+{candidates_ctx}
+
+DECISION CRITERIA:
+1. If the user is asking for a specific feature (e.g., 'login', 'auth'), prioritize files that IMPLEMENT that feature (e.g., controllers, services, pages) over infrastructure files (e.g., middleware, config).
+2. Look for explicit matches in filename and implementation logic.
+3. If multiple files match, pick the one that contains the core logic or the primary entry point.
+
+INSTRUCTION: Return ONLY the index number (0, 1, 2, 3, or 4). Do not explain your choice."""
         
         try:
             async with httpx.AsyncClient() as client:
@@ -183,15 +219,15 @@ async def navigate_code(
                     headers={"Authorization": f"Bearer {settings.GROK_API_KEY}"},
                     json={
                         "model": settings.GROK_MODEL,
-                        "messages": [{"role": "user", "content": prompt}],
+                        "messages": [{"role": "system", "content": "You are a code navigation expert. You help developers find the right file in a repository based on their intent."}, {"role": "user", "content": prompt}],
                         "temperature": 0.0
                     },
-                    timeout=5.0
+                    timeout=8.0
                 )
                 if resp.status_code == 200:
-                    ai_idx = resp.json()["choices"][0]["message"]["content"].strip()
+                    ai_res = resp.json()["choices"][0]["message"]["content"].strip()
                     import re
-                    m = re.search(r'\d+', ai_idx)
+                    m = re.search(r'\d+', ai_res)
                     if m:
                         idx = int(m.group())
                         if 0 <= idx < len(sorted_files):

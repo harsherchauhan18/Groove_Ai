@@ -22,7 +22,7 @@ app.add_middleware(
 )
 
 # ── Routes ────────────────────────────────────────────────────────────────────
-from app.api.routes import ingest, parse, embed, graph, ai, metrics, chat, insights  # noqa: E402
+from app.api.routes import ingest, parse, embed, graph, ai, metrics, chat, insights, functions, code  # noqa: E402
 
 app.include_router(ingest.router, prefix="/api/ingest", tags=["Ingestion"])
 app.include_router(parse.router, prefix="/api/parse", tags=["Parsing"])
@@ -32,6 +32,8 @@ app.include_router(ai.router, prefix="/api/ai", tags=["AI"])
 app.include_router(metrics.router, prefix="/api/metrics", tags=["Metrics"])
 app.include_router(chat.router, prefix="/api/chat", tags=["Chat"])
 app.include_router(insights.router, prefix="/api/insights", tags=["Insights"])
+app.include_router(functions.router, prefix="/api/functions", tags=["Functions"])
+app.include_router(code.router, prefix="/api/code", tags=["Code Recovery"])
 
 
 @app.get("/health", tags=["Health"])
