@@ -87,13 +87,13 @@ export default function DashboardPage() {
         </div>
 
         <nav className="nav-menu">
-          <div className="nav-item active">
+          <div className="nav-item active" onClick={() => navigate('/dashboard')}>
             <LayoutDashboard size={20} />
             Dashboard
           </div>
-          <div className="nav-item">
+          <div className="nav-item" onClick={() => navigate('/codebase')}>
             <Code size={20} />
-            Projects
+            Codebase
           </div>
           <div className="nav-item">
             <BarChart3 size={20} />

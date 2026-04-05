@@ -1,0 +1,17 @@
+SCHEMA_START
+COL: id | TYPE: uuid | NULL: NO
+COL: userId | TYPE: uuid | NULL: NO
+COL: lastAnalyzedAt | TYPE: timestamp with time zone | NULL: YES
+COL: metadata | TYPE: jsonb | NULL: YES
+COL: createdAt | TYPE: timestamp with time zone | NULL: NO
+COL: updatedAt | TYPE: timestamp with time zone | NULL: NO
+COL: status | TYPE: USER-DEFINED | NULL: YES
+COL: name | TYPE: character varying | NULL: NO
+COL: url | TYPE: character varying | NULL: NO
+COL: error | TYPE: text | NULL: YES
+COL: branch | TYPE: character varying | NULL: YES
+SCHEMA_END
+CONSTRAINTS_START
+CON: repositories_pkey | DEF: PRIMARY KEY (id)
+CON: repositories_userId_fkey | DEF: FOREIGN KEY ("userId") REFERENCES users(id) ON UPDATE CASCADE ON DELETE CASCADE
+CONSTRAINTS_END

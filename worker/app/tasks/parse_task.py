@@ -72,17 +72,32 @@ def parse_repo(self, repo_id: str):
         raise FileNotFoundError(f"Repo path not found: {local_path}")
 
     chunks = _walk_repo(local_path)
-    logger.info("Parsed %d files for repo %s", len(chunks), repo_id)
+    total_files = len(chunks)
+    batch_size = 50
+    logger.info("Parsed %d files for repo %s. Sending in batches of %d.", total_files, repo_id, batch_size)
 
     try:
         with httpx.Client(timeout=60) as client:
+            # 1. Store chunks in batches
+            for i in range(0, total_files, batch_size):
+                batch = chunks[i : i + batch_size]
+                logger.info("Sending batch %d/%d for %s", (i // batch_size) + 1, (total_files // batch_size) + 1, repo_id)
+                resp = client.post(
+                    f"{FASTAPI_URL}/api/parse/store",
+                    json={"repo_id": repo_id, "chunks": batch},
+                )
+                resp.raise_for_status()
+
+            # 2. Signal completion to start Graph/Embed pipeline
+            logger.info("All batches sent for %s. Triggering post-processing.", repo_id)
             resp = client.post(
-                f"{FASTAPI_URL}/api/parse/store",
-                json={"repo_id": repo_id, "chunks": chunks},
+                f"{FASTAPI_URL}/api/parse/complete",
+                json={"repo_id": repo_id},
             )
             resp.raise_for_status()
+
     except httpx.HTTPError as exc:
-        logger.error("HTTP error sending parse results: %s", exc)
+        logger.error("HTTP error sending parse results for %s: %s", repo_id, exc)
         raise self.retry(exc=exc)
 
-    return {"status": "success", "repo_id": repo_id, "files_parsed": len(chunks)}
+    return {"status": "success", "repo_id": repo_id, "files_parsed": total_files}

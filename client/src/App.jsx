@@ -4,6 +4,7 @@ import useAuthStore from './store/useAuthStore.js';
 import LoginPage from './pages/LoginPage.jsx';
 import OAuthCallbackPage from './pages/OAuthCallbackPage.jsx';
 import DashboardPage from './pages/DashboardPage.jsx';
+import CodebasePage from './pages/CodebasePage.jsx';
 import ProtectedRoute from './components/common/ProtectedRoute.jsx';
 
 export default function App() {
@@ -38,6 +39,14 @@ export default function App() {
           <ProtectedRoute>
             {/* RepoPage will be implemented in the next feature iteration */}
             <div style={{ color: 'white', padding: '2rem' }}>Repo Analyser (coming soon)</div>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/codebase"
+        element={
+          <ProtectedRoute>
+            <CodebasePage />
           </ProtectedRoute>
         }
       />
