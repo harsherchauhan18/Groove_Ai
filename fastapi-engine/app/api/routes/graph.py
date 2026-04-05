@@ -149,48 +149,71 @@ async def get_visualization_graph(
     db: AsyncSession = Depends(get_db),
     user=Depends(verify_token)
 ):
-    """React Flow-compatible flat graph from code_chunks file paths."""
+    """React Flow-compatible flat graph from code_chunks and functions."""
     try:
-        result = await db.execute(
+        # 1. Fetch files
+        file_res = await db.execute(
             text("""
-                SELECT DISTINCT "filePath", extension
+                SELECT DISTINCT "filePath"
                 FROM code_chunks
                 WHERE "repoId" = CAST(:repo_id AS uuid)
-                ORDER BY "filePath"
-                LIMIT 200
             """),
             {"repo_id": repo_id}
         )
-        files = result.mappings().all()
+        files = file_res.mappings().all()
+
+        # 2. Fetch functions (safeguard in case table doesn't exist yet)
+        functions = []
+        check = await db.execute(
+            text("SELECT EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'functions')")
+        )
+        if check.scalar():
+            fn_res = await db.execute(
+                text("""
+                    SELECT id, name, "filePath", "startLine", "endLine"
+                    FROM functions
+                    WHERE "repoId" = CAST(:repo_id AS uuid)
+                """),
+                {"repo_id": repo_id}
+            )
+            functions = fn_res.mappings().all()
 
         if not files:
             return {"nodes": [], "edges": []}
 
-        nodes, edges, dir_seen = [], [], set()
+        nodes, edges = [], []
+        
+        # Add root node
+        nodes.append({
+            "id": "root", "name": "Repository Root", "type": "file",
+            "file_path": "", "start_line": 0, "end_line": 0
+        })
 
-        for i, f in enumerate(files):
+        file_ids = set()
+        for f in files:
             fp = (f["filePath"] or "").replace("\\", "/")
-            parts = fp.split("/")
-            fname = parts[-1]
-            dname = "/".join(parts[:-1]) if len(parts) > 1 else "root"
-            file_id = f"file::{fp}"
-            dir_id = f"dir::{dname}"
-
-            if dname not in dir_seen:
-                dir_seen.add(dname)
+            fid = f"file::{fp}"
+            if fid not in file_ids:
+                file_ids.add(fid)
                 nodes.append({
-                    "id": dir_id,
-                    "name": parts[-2] if len(parts) > 1 else "root",
-                    "type": "file", "file_path": dname, "start_line": 1,
-                    "position": {"x": (len(dir_seen) % 5) * 240, "y": (len(dir_seen) // 5) * 160}
+                    "id": fid, "name": fp.split("/")[-1], 
+                    "type": "file", "file_path": fp, 
+                    "start_line": 1, "end_line": 1
                 })
+                # Link root -> file
+                edges.append({"from": "root", "to": fid})
 
+        for fn in functions:
+            fp = (fn["filePath"] or "").replace("\\", "/")
+            fid = f"file::{fp}"
+            fn_id = str(fn["id"])
             nodes.append({
-                "id": file_id, "name": fname,
-                "type": "function", "file_path": fp, "start_line": 1,
-                "position": {"x": (i % 6) * 210 + 60, "y": (i // 6) * 130 + 90}
+                "id": fn_id, "name": fn["name"],
+                "type": "function", "file_path": fp,
+                "start_line": fn["startLine"], "end_line": fn["endLine"]
             })
-            edges.append({"from": dir_id, "to": file_id})
+            # Link file -> function
+            edges.append({"from": fid, "to": fn_id})
 
         return {"nodes": nodes, "edges": edges}
 
