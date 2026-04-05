@@ -1,0 +1,5 @@
+--- 1. code_chunks matching src/app/profile/[id]% ---
+
+--- 2. Graph visualizer simulated output ---
+Found in db: src\app\profile\[id]\page.tsx
+Found in db: src\app\profile\page.tsx
