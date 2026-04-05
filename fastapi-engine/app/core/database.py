@@ -7,9 +7,12 @@ settings = get_settings()
 # asyncpg does not understand ?sslmode=require from the standard pg URL.
 # We need to pass an ssl context explicitly for Neon (cloud PostgreSQL).
 db_url = settings.DATABASE_URL
+if db_url.startswith("postgresql://"):
+    db_url = db_url.replace("postgresql://", "postgresql+asyncpg://")
+
 connect_args = {}
 
-if "sslmode=" in db_url:
+if "sslmode=" in db_url or "ssl=" in db_url:
     # Strip sslmode from URL and pass it as connect_args instead
     db_url = db_url.split("?")[0]  # Remove query params
     ssl_ctx = ssl.create_default_context()

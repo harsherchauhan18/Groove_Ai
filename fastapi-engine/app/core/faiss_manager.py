@@ -37,9 +37,10 @@ class FAISSManager:
         # Initialize Sentence Transformer locally
         # Downloading weights can take a moment
         logger.info(f"Loading local embedding model: {settings.EMBEDDING_MODEL}")
+        hf_token = settings.HF_TOKEN.strip() if settings.HF_TOKEN else None
         self.model = SentenceTransformer(
             settings.EMBEDDING_MODEL, 
-            use_auth_token=settings.HF_TOKEN if settings.HF_TOKEN else None
+            use_auth_token=hf_token if hf_token else None
         )
 
     def save(self):

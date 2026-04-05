@@ -55,11 +55,15 @@ async def query_repo(
         context = "\n\n".join([f"--- File: {row[1]} ---\n{row[0]}" for row in chunks])
         
         # 3. Call Groq API
+        grok_key = settings.GROK_API_KEY.strip() if settings.GROK_API_KEY else ""
+        if not grok_key:
+            return {"answer": "Groq API key is missing. Please configure GROK_API_KEY in your fast-api engine .env file.", "sources": []}
+
         async with httpx.AsyncClient() as client:
             resp = await client.post(
                 "https://api.groq.com/openai/v1/chat/completions",
                 headers={
-                    "Authorization": f"Bearer {settings.GROK_API_KEY}",
+                    "Authorization": f"Bearer {grok_key}",
                     "Content-Type": "application/json"
                 },
                 json={

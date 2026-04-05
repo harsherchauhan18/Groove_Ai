@@ -35,3 +35,5 @@ app.include_router(metrics.router, prefix="/api/metrics", tags=["Metrics"])
 @app.get("/health", tags=["Health"])
 async def health():
     return {"status": "ok"}
+
+# End of file
