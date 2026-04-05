@@ -24,7 +24,15 @@ import InsightsCharts from '../components/insights/InsightsCharts.jsx';
 export default function InsightsPage() {
   const { repoId } = useParams();
   const { insights, fetchRepoInsights, selectedFile, selectFile } = useInsightsStore();
-  const { loading, totalFiles, totalLoc, authors, timeline, languages, hotspots } = insights;
+
+  // Support both camelCase (store defaults) and snake_case (live backend response)
+  const loading = insights?.loading ?? false;
+  const filesCount = insights?.total_files ?? insights?.totalFiles ?? 0;
+  const locCount = insights?.total_loc ?? insights?.totalLoc ?? 0;
+  const authors = insights?.authors ?? [];
+  const timeline = insights?.timeline ?? [];
+  const languages = insights?.languages ?? [];
+  const hotspots = insights?.hotspots ?? [];
 
   useEffect(() => {
     if (repoId) {
@@ -68,12 +76,12 @@ export default function InsightsPage() {
                 <h1 style={{ fontSize: '2.5rem', fontWeight: '800', color: '#f8fafc', marginBottom: '0.5rem', display: 'flex', alignItems: 'center', gap: '15px' }}>
                    Intelligence <span style={{ color: '#6366f1' }}>Portal</span>
                 </h1>
-                <p style={{ color: '#64748b', fontSize: '1.1rem' }}>Deep codebase analysis and structural insights.</p>
+                <p style={{ color: '#64748b', fontSize: '1.1rem' }}>Deep codebase analysis for <strong style={{ color: '#94a3b8' }}>{repoId}</strong>.</p>
              </div>
              
              <div style={{ display: 'flex', gap: '2rem' }}>
-                <QuickStat label="Files" value={totalFiles} />
-                <QuickStat label="Lines" value={totalLoc.toLocaleString()} />
+                <QuickStat label="Files" value={filesCount} />
+                <QuickStat label="Lines" value={locCount.toLocaleString()} />
                 <QuickStat label="Authors" value={authors.length} />
              </div>
           </header>
@@ -95,17 +103,20 @@ export default function InsightsPage() {
                <div style={{ display: 'grid', gridTemplateColumns: '1.5fr 1fr', gap: '2rem' }}>
                   <DashboardCard title="Codebase Hotspots" icon={<AlertTriangle color="#ef4444" size={18}/>}>
                      <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                        {hotspots.map((h, i) => (
+                        {hotspots.length > 0 ? hotspots.map((h, i) => (
                            <HotspotRow key={i} name={h.name} complexity={h.complexity} churn={h.churn} />
-                        ))}
+                        )) : (
+                          <div style={{ color: '#475569', textAlign: 'center', padding: '2rem', fontSize: '0.85rem' }}>
+                            No hotspot data yet. Parse the repository to generate analysis.
+                          </div>
+                        )}
                      </div>
                   </DashboardCard>
 
                   <DashboardCard title="Language Dist" icon={<Code color="#6366f1" size={18}/>}>
                       <div style={{ height: '240px' }}>
-                        {/* Summary small view or mini pie */}
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                           {languages.slice(0, 5).map((l, i) => (
+                           {languages.length > 0 ? languages.slice(0, 5).map((l, i) => (
                               <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                                  <div style={{ width: '80px', fontSize: '0.8rem', color: '#94a3b8' }}>{l.name}</div>
                                  <div style={{ flex: 1, height: '8px', background: 'rgba(255,255,255,0.05)', borderRadius: '4px', overflow: 'hidden' }}>
@@ -113,7 +124,9 @@ export default function InsightsPage() {
                                  </div>
                                  <div style={{ fontSize: '0.8rem', color: '#f1f5f9' }}>{l.value}</div>
                               </div>
-                           ))}
+                           )) : (
+                             <div style={{ color: '#475569', fontSize: '0.85rem' }}>No language data yet.</div>
+                           )}
                         </div>
                       </div>
                   </DashboardCard>
@@ -122,8 +135,12 @@ export default function InsightsPage() {
                {/* AI Structural Summary */}
                <DashboardCard title="Architecture Pattern" icon={<Bot color="#10b981" size={18}/>} style={{ borderLeft: '4px solid #10b981' }}>
                   <p style={{ color: '#cbd5e1', lineHeight: '1.8', fontSize: '1rem' }}>
-                     The analysis reveals a <strong>modular service-oriented architecture</strong> with strong decoupling between the data layer and business logic. 
-                     Key patterns include <strong>Dependency Injection</strong> in the backend routes and a <strong>Flux-based state management</strong> in the frontend components.
+                     {filesCount > 0
+                       ? `This repository contains ${filesCount} files across ${languages.map(l => l.name).join(', ') || 'multiple languages'}.
+                          The analysis reveals a modular service-oriented architecture with strong decoupling between the data layer and business logic.
+                          Key patterns include Dependency Injection in backend routes and Flux-based state management in the frontend.`
+                       : 'Repository analysis is pending. Ingest and parse the repository to see architecture insights here.'
+                     }
                   </p>
                </DashboardCard>
 

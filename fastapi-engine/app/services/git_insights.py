@@ -31,7 +31,7 @@ class GitInsightsService:
         except Exception:
             return []
             
-        return [{"author": name, "commits": count} for name, count in sorted(authors.items(), key=lambda x: x[1], reverse=True)]
+        return [{"name": name, "commits": count} for name, count in sorted(authors.items(), key=lambda x: x[1], reverse=True)]
 
     @staticmethod
     def get_commit_timeline(repo_id: str) -> List[Dict[str, Any]]:

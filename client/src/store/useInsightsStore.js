@@ -30,19 +30,21 @@ const useInsightsStore = create((set, get) => ({
   fetchRepoInsights: async (repoId) => {
     set(state => ({ insights: { ...state.insights, loading: true, error: null } }));
     try {
-      const FASTAPI_URL = import.meta.env.VITE_FASTAPI_URL || 'http://localhost:8000';
       const token = localStorage.getItem('accessToken');
       const headers = { Authorization: `Bearer ${token}` };
 
-      const [overviewRes, treeRes] = await Promise.all([
+      const [overviewRes, treeRes] = await Promise.allSettled([
         axios.get(`${FASTAPI_URL}/api/insights/overview?repo_id=${repoId}`, { headers }),
         axios.get(`${FASTAPI_URL}/api/insights/tree?repo_id=${repoId}`, { headers })
       ]);
 
+      const overview = overviewRes.status === 'fulfilled' ? overviewRes.value.data : {};
+      const tree = treeRes.status === 'fulfilled' ? treeRes.value.data : null;
+
       set({
         insights: {
-          ...overviewRes.data,
-          treeData: treeRes.data,
+          ...overview,
+          treeData: tree,
           loading: false,
           error: null
         }
@@ -65,7 +67,6 @@ const useInsightsStore = create((set, get) => ({
     });
 
     try {
-      const FASTAPI_URL = import.meta.env.VITE_FASTAPI_URL || 'http://localhost:8000';
       const token = localStorage.getItem('accessToken');
       const headers = { Authorization: `Bearer ${token}` };
 

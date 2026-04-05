@@ -1,11 +1,16 @@
 import { useEffect } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import useAuthStore from './store/useAuthStore.js';
+
+// Pages
 import LoginPage from './pages/LoginPage.jsx';
 import OAuthCallbackPage from './pages/OAuthCallbackPage.jsx';
+import RepositoriesPage from './pages/RepositoriesPage.jsx';
 import DashboardPage from './pages/DashboardPage.jsx';
 import InsightsPage from './pages/InsightsPage.jsx';
 import RepoPage from './pages/RepoPage.jsx';
+import ChatPage from './pages/ChatPage.jsx';
+import FolderExplorerPage from './pages/FolderExplorerPage.jsx';
 import ProtectedRoute from './components/common/ProtectedRoute.jsx';
 
 export default function App() {
@@ -21,19 +26,33 @@ export default function App() {
 
   return (
     <Routes>
-      {/* Public */}
+      {/* ── Public ──────────────────────────────────────────── */}
       <Route path="/login" element={<LoginPage />} />
       <Route path="/auth/callback" element={<OAuthCallbackPage />} />
 
-      {/* Protected */}
+      {/* ── Protected ───────────────────────────────────────── */}
+
+      {/* Home: Repositories list */}
       <Route
         path="/dashboard"
+        element={
+          <ProtectedRoute>
+            <RepositoriesPage />
+          </ProtectedRoute>
+        }
+      />
+
+      {/* Graph Intelligence / bi-directional sync */}
+      <Route
+        path="/dashboard/sync/:repoId"
         element={
           <ProtectedRoute>
             <DashboardPage />
           </ProtectedRoute>
         }
       />
+
+      {/* Codebase Navigator */}
       <Route
         path="/repo/:repoId"
         element={
@@ -42,8 +61,10 @@ export default function App() {
           </ProtectedRoute>
         }
       />
+
+      {/* Deep Insights */}
       <Route
-        path="/insights/:repoId?"
+        path="/insights/:repoId"
         element={
           <ProtectedRoute>
             <InsightsPage />
@@ -51,8 +72,28 @@ export default function App() {
         }
       />
 
-      {/* Fallback */}
-      <Route path="*" element={<Navigate to="/login" replace />} />
+      {/* Folder Structure Explorer */}
+      <Route
+        path="/explorer/:repoId"
+        element={
+          <ProtectedRoute>
+            <FolderExplorerPage />
+          </ProtectedRoute>
+        }
+      />
+
+      {/* AI Chat */}
+      <Route
+        path="/chat/:repoId"
+        element={
+          <ProtectedRoute>
+            <ChatPage />
+          </ProtectedRoute>
+        }
+      />
+
+      {/* ── Fallback ────────────────────────────────────────── */}
+      <Route path="*" element={<Navigate to="/dashboard" replace />} />
     </Routes>
   );
 }

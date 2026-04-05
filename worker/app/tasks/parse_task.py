@@ -59,30 +59,51 @@ def _walk_repo(repo_path: str) -> list[dict]:
 )
 def parse_repo(self, repo_id: str):
     """
-    Walk a cloned repository and send parsed file chunks to the FastAPI engine.
-
-    Args:
-        repo_id: Identifier matching the folder name under REPOS_BASE_DIR.
-
-    Returns:
-        dict with file count processed.
+    Walk a cloned repository, extract code chunks and functions, 
+    and store them in PostgreSQL and Neo4j.
     """
     local_path = os.path.join(REPOS_BASE_DIR, repo_id)
     if not os.path.isdir(local_path):
         raise FileNotFoundError(f"Repo path not found: {local_path}")
 
-    chunks = _walk_repo(local_path)
-    logger.info("Parsed %d files for repo %s", len(chunks), repo_id)
+    files = _walk_repo(local_path)
+    logger.info("Parsed %d files for repo %s", len(files), repo_id)
+
+    # Function Extraction Dispatcher
+    def extract_functions(content, ext):
+        funcs = []
+        lines = content.split('\n')
+        # Simple extraction logic for the worker flow
+        if ext == '.py':
+            import re
+            for i, line in enumerate(lines):
+                m = re.match(r'^\s*def\s+(\w+)\s*\(', line)
+                if m:
+                    funcs.append({"name": m.group(1), "start": i+1, "end": i+1}) # end line logic placeholder
+        elif ext in ['.js', '.ts', '.jsx', '.tsx']:
+            import re
+            for i, line in enumerate(lines):
+                m = re.search(r'(?:function\s+(\w+)|(?:const|let|var)\s+(\w+)\s*=\s*(?:\(.*\)|[\w\d]+)\s*=>)', line)
+                if m:
+                    name = m.group(1) or m.group(2)
+                    if name:
+                        funcs.append({"name": name, "start": i+1, "end": i+1})
+        return funcs
+
+    # Enrich processed files with function metadata
+    for f in files:
+        f['functions'] = extract_functions(f['content'], f['extension'])
 
     try:
-        with httpx.Client(timeout=60) as client:
+        with httpx.Client(timeout=120) as client:
+            # Send everything to FastAPI for storage and Neo4j sync
             resp = client.post(
                 f"{FASTAPI_URL}/api/parse/store",
-                json={"repo_id": repo_id, "chunks": chunks},
+                json={"repo_id": repo_id, "chunks": files},
             )
             resp.raise_for_status()
     except httpx.HTTPError as exc:
         logger.error("HTTP error sending parse results: %s", exc)
         raise self.retry(exc=exc)
 
-    return {"status": "success", "repo_id": repo_id, "files_parsed": len(chunks)}
+    return {"status": "success", "repo_id": repo_id, "files_parsed": len(files)}

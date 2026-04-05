@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { useNavigate, useLocation, useParams } from 'react-router-dom';
 import { 
   Code, 
@@ -7,7 +7,10 @@ import {
   LogOut,
   Search,
   Bot,
-  Loader2
+  Loader2,
+  Share2,
+  FolderTree,
+  MessageSquare
 } from 'lucide-react';
 import useAuthStore from '../../store/useAuthStore.js';
 import useNavigationStore from '../../store/useNavigationStore';
@@ -30,6 +33,9 @@ export default function Sidebar() {
     { id: 'repositories', icon: Code, label: 'Repositories', path: '/dashboard' },
     { id: 'navigator', icon: Compass, label: 'Codebase Navigator', path: repoId ? `/repo/${repoId}` : '/dashboard' },
     { id: 'insights', icon: BarChart3, label: 'Deep Insights', path: repoId ? `/insights/${repoId}` : '/dashboard' },
+    { id: 'graph-sync', icon: Share2, label: 'Graph Intelligence', path: repoId ? `/dashboard/sync/${repoId}` : '/dashboard' },
+    { id: 'explorer', icon: FolderTree, label: 'Folder Explorer', path: repoId ? `/explorer/${repoId}` : '/dashboard' },
+    { id: 'chat', icon: MessageSquare, label: 'AI Chat', path: repoId ? `/chat/${repoId}` : '/dashboard' },
   ];
 
   const handleLogout = async () => {

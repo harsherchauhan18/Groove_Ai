@@ -31,10 +31,12 @@ async def get_insights_tree(repo_id: str = Query(...), db: AsyncSession = Depend
         repo = GitInsightsService.get_repo(repo_id)
         
         tree: Dict[str, Any] = {"name": repo_id, "type": "dir", "children": {}}
+        import re
         
         for f in files:
             file_path = f["filePath"]
-            parts = file_path.split("/")
+            # Handle both backslashes and forward slashes
+            parts = re.split(r'[\\/]', file_path)
             current = tree["children"]
             for i, part in enumerate(parts):
                 is_last = (i == len(parts) - 1)
@@ -43,7 +45,9 @@ async def get_insights_tree(repo_id: str = Query(...), db: AsyncSession = Depend
                         last_mod, change_count = None, 0
                         if repo:
                             try:
-                                commits = list(repo.iter_commits(paths=file_path, max_count=50))
+                                # Standardize for git (always uses forward slashes)
+                                git_path = file_path.replace("\\", "/")
+                                commits = list(repo.iter_commits(paths=git_path, max_count=50))
                                 change_count = len(commits)
                                 if commits:
                                     last_mod = datetime.fromtimestamp(commits[0].committed_date).strftime("%Y-%m-%d")
@@ -83,37 +87,45 @@ async def get_file_insight(
     """
     RAG-enabled file summary + metadata.
     """
-    repo_path = os.path.join(REPOS_BASE_DIR, repo_id)
-    full_path = os.path.join(repo_path, file_path)
-    
-    if not os.path.exists(full_path):
-        raise HTTPException(status_code=404, detail="File not found")
-        
     try:
+        repo_path = os.path.join(REPOS_BASE_DIR, repo_id)
+        # Normalize file path for current OS
+        normalized_file_path = file_path.replace("/", os.path.sep).replace("\\", os.path.sep)
+        full_path = os.path.join(repo_path, normalized_file_path)
+        
+        logger.info(f"Loading file for insights: {full_path}")
+        
+        if not os.path.exists(full_path):
+            logger.error(f"File not found: {full_path}")
+            raise HTTPException(status_code=404, detail=f"File not found on disk at {full_path}")
+            
         with open(full_path, 'r', encoding='utf-8', errors='ignore') as f:
             content = f.read()
         
         # 1. Basic Stats
         lines = content.split('\n')
         loc = len(lines)
-        complexity = content.count('if ') + content.count('for ') + content.count('while ')
+        complexity = content.count('if ') + content.count('for ') + content.count('while ') + content.count('case ') + content.count('try ')
         
         # 2. Semantic Context (RAG)
-        query_emb = await faiss.get_embeddings([f"Identify the purpose and logic of file: {file_path}"])
-        distances, indices = faiss.index.search(query_emb, k=3)
-        found_indices = [str(i) for i in indices[0].tolist() if i != -1]
-        
         context_chunks = []
-        if found_indices:
-            res = await db.execute(
-                text('SELECT content FROM code_chunks WHERE "repoId" = CAST(:repo_id AS uuid) AND "embeddingId" = ANY(string_to_array(:emb_ids, \',\'))'),
-                {"repo_id": repo_id, "emb_ids": ",".join(found_indices)}
-            )
-            context_chunks = [r[0] for r in res.fetchall()]
+        try:
+            query_emb = await faiss.get_embeddings([f"Identify the purpose and logic of file: {file_path}"])
+            distances, indices = faiss.index.search(query_emb, k=3)
+            found_indices = [str(i) for i in indices[0].tolist() if i != -1]
+            
+            if found_indices:
+                res = await db.execute(
+                    text('SELECT content FROM code_chunks WHERE "repoId" = CAST(:repo_id AS uuid) AND "embeddingId" = ANY(string_to_array(:emb_ids, \',\'))'),
+                    {"repo_id": repo_id, "emb_ids": ",".join(found_indices)}
+                )
+                context_chunks = [r[0] for r in res.fetchall()]
+        except Exception as rag_err:
+            logger.warning(f"RAG failed for file insight: {rag_err}")
 
         # 3. AI Summary (Grok)
         preview = "\n".join(lines[:50])
-        prompt = f"Analyze this file: {file_path}\n\nContext Snippets:\n{''.join(context_chunks[:2])}\n\nCode Preview:\n{preview}\n\nExplain:\n1. Purpose\n2. Role\n3. Key Logic\n4. Improvements\nKeep it under 5 lines."
+        prompt = f"Analyze this file implementation: {file_path}\n\nContext Snippets:\n{''.join(context_chunks[:2])}\n\nCode Preview:\n{preview}\n\nObjective: Summarize the purpose and implementation logic.\nKeep it under 5 lines."
         
         summary = "AI analysis processing..."
         async with httpx.AsyncClient() as client:
@@ -121,12 +133,24 @@ async def get_file_insight(
                 resp = await client.post(
                     "https://api.groq.com/openai/v1/chat/completions",
                     headers={"Authorization": f"Bearer {settings.GROK_API_KEY}"},
-                    json={"model": settings.GROK_MODEL, "messages": [{"role": "user", "content": prompt}], "temperature": 0.1},
+                    json={
+                        "model": settings.GROK_MODEL, 
+                        "messages": [
+                            {"role": "system", "content": "You are a senior codebase architect providing brief, technical summaries of file implementations."},
+                            {"role": "user", "content": prompt}
+                        ], 
+                        "temperature": 0.1
+                    },
                     timeout=10.0
                 )
                 if resp.status_code == 200:
                     summary = resp.json()["choices"][0]["message"]["content"]
-            except Exception: pass
+                else:
+                    logger.error(f"Groq error ({resp.status_code}): {resp.text}")
+                    summary = "Failed to generate AI summary at this time."
+            except Exception as grok_err: 
+                logger.error(f"Grok exception: {grok_err}")
+                summary = "AI summary service unavailable."
 
         return {
             "file_path": file_path,
@@ -136,6 +160,7 @@ async def get_file_insight(
             "preview": preview,
             "last_modified": "2024-04-05" # Mock
         }
+    except HTTPException: raise
     except Exception as e:
         logger.error(f"File insight error: {e}")
         raise HTTPException(status_code=500, detail=str(e))
