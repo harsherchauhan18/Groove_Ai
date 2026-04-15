@@ -24,7 +24,7 @@ services:
         value: "false"
 
   - type: web
-    name: groove-celery-worker
+    name: groove-celery-service
     runtime: python
     rootDir: worker
     plan: free
