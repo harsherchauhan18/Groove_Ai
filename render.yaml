@@ -23,10 +23,10 @@ services:
       - key: DEBUG
         value: "false"
 
-  - type: worker
+  - type: web
     name: groove-celery-worker
     runtime: python
     rootDir: worker
     plan: free
     buildCommand: pip install -r requirements.txt
-    startCommand: celery -A app.worker.celery_app worker --loglevel=info --concurrency=2
+    startCommand: python3 -m http.server $PORT & celery -A app.worker.celery_app worker --loglevel=info --concurrency=2
