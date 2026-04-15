@@ -3,6 +3,7 @@ services:
     name: groove-node-api
     runtime: node
     rootDir: node-api
+    plan: free
     buildCommand: npm ci --omit=dev
     startCommand: node src/server.js
     envVars:
@@ -13,6 +14,7 @@ services:
     name: groove-fastapi
     runtime: python
     rootDir: fastapi-engine
+    plan: free
     buildCommand: pip install -r requirements.txt
     startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
     envVars:
@@ -25,5 +27,6 @@ services:
     name: groove-celery-worker
     runtime: python
     rootDir: worker
+    plan: free
     buildCommand: pip install -r requirements.txt
     startCommand: celery -A app.worker.celery_app worker --loglevel=info --concurrency=2
